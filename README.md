@@ -1,5 +1,5 @@
 # ThermoProp
-## Thermophysical Properties Calculator
+*Thermophysical Properties Calculator*
 
 **Version:** 2.2.0  
 **Author:** Faiq Raedaya
@@ -31,7 +31,7 @@ ThermoProp is an enhanced thermophysical properties calculator designed for risk
 1. **Clone the repository:**
    ```bash
    git clone <repo-url>
-   cd "2511P Thermophysical Properties Calculator"
+   cd "ThermoProp"
    ```
 2. **Install dependencies:**
    You can use pip to install the required packages:
@@ -61,8 +61,7 @@ python main.py
 - `test_app.py` — Test script for verifying installation and UI
 
 ## License
-This project is © 2025 Faiq Raedaya. All rights reserved.  
-For academic or non-commercial use, please contact the author for permission.
+This project is provided under the MIT License.
 
 ## Acknowledgments
 - [CoolProp](http://www.coolprop.org/) for thermophysical property calculations.

@@ -27,26 +27,24 @@ ThermoProp is an enhanced thermophysical properties calculator designed for risk
 ## Installation
 1. **Clone the repository:**
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/faiqraedaya/thermoprop
    cd "ThermoProp"
    ```
 2. **Install dependencies:**
-   You can use pip to install the required packages:
    ```bash
    pip install CoolProp PyQt5 matplotlib pandas numpy scipy pint
    ```
 
 ## Usage
-To launch the application, run:
-```bash
-python main.py
-```
-
-- The main window provides access to all features via tabs and menus.
-- Use the **Mixture Designer** to define or load mixtures.
-- Use the **Process Path** tab to simulate thermodynamic processes.
-- Use the **Plotting** tab for advanced visualization.
-- Export results using the menu or export buttons in each tab.
+1. To launch the application, run:
+   ```bash
+   python main.py
+   ```
+2. The main window provides access to all features via tabs and menus.
+   - Use the **Mixture Designer** to define or load mixtures.
+   - Use the **Process Path** tab to simulate thermodynamic processes.
+   - Use the **Plotting** tab for advanced visualization.
+   - Export results using the menu or export buttons in each tab.
 
 ## Project Structure
 - `main.py` — Application entry point

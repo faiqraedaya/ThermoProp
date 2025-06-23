@@ -1,9 +1,6 @@
 # ThermoProp
 *Thermophysical Properties Calculator*
 
-**Version:** 2.2.0  
-**Author:** Faiq Raedaya
-
 ## Overview
 ThermoProp is an enhanced thermophysical properties calculator designed for risk and safety engineering applications, with robust support for pure fluids and mixtures. It provides a modern, user-friendly graphical interface for calculating, simulating, and visualizing a wide range of thermodynamic and transport properties.
 

@@ -1,4 +1,4 @@
-# ThermoProp: 
+# ThermoProp
 ## Thermophysical Properties Calculator
 
 **Version:** 2.2.0  

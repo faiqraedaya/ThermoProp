@@ -2,7 +2,7 @@
 *Thermophysical Properties Calculator*
 
 ## Overview
-ThermoProp is an enhanced thermophysical properties calculator designed for risk and safety engineering applications, with robust support for pure fluids and mixtures. It provides a modern, user-friendly graphical interface for calculating, simulating, and visualizing a wide range of thermodynamic and transport properties.
+ThermoProp is an enhanced thermophysical properties calculator with robust support for pure fluids and mixtures. It provides a modern, user-friendly GUI for calculating, simulating, and visualizing a wide range of thermodynamic and transport properties.
 
 ## Features
 - **Single Point Calculations:** Compute properties for pure fluids at specified conditions.
@@ -46,19 +46,8 @@ ThermoProp is an enhanced thermophysical properties calculator designed for risk
    - Use the **Plotting** tab for advanced visualization.
    - Export results using the menu or export buttons in each tab.
 
-## Project Structure
-- `main.py` — Application entry point
-- `main_window.py` — Main GUI window
-- `core/` — Core calculation logic (mixtures, components, plotting)
-- `tabs/` — GUI tabs for different calculation and visualization tasks
-- `dialogs/` — Dialogs for quick calculations, unit conversion, about, etc.
-- `utils/` — Utility functions (file I/O, table utilities)
-- `test_app.py` — Test script for verifying installation and UI
-
 ## License
 This project is provided under the MIT License.
 
 ## Acknowledgments
-- [CoolProp](http://www.coolprop.org/) for thermophysical property calculations.
-- PyQt5 for the GUI framework.
-- matplotlib for plotting and visualization.
+- [CoolProp](http://www.coolprop.org/) for an incredible thermophysical property calculation package.

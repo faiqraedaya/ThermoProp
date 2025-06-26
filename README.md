@@ -4,6 +4,8 @@
 ## Overview
 ThermoProp is an enhanced thermophysical properties calculator with robust support for pure fluids and mixtures. It provides a modern, user-friendly GUI for calculating, simulating, and visualizing a wide range of thermodynamic and transport properties.
 
+*Basically a CoolProp GUI Wrapper...*
+
 ## Features
 - **Single Point Calculations:** Compute properties for pure fluids at specified conditions.
 - **Mixture Designer:** Define custom or use predefined mixtures (e.g., air, natural gas, flue gas) and calculate their properties.

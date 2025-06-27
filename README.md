@@ -37,7 +37,7 @@ ThermoProp is a versatile thermophysical properties calculator using CoolProp, w
    ```
 
 ## Usage
-1. To launch the application, run:
+1. **Launch the application:**
    ```bash
    python main.py
    ```

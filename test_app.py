@@ -11,10 +11,10 @@ def test_imports():
     print("Testing imports...")
     
     try:
-        from PyQt5.QtWidgets import QApplication
-        print("✓ PyQt5 imported successfully")
+        from PySide6.QtWidgets import QApplication
+        print("✓ PySide6 imported successfully")
     except ImportError as e:
-        print(f"✗ PyQt5 import failed: {e}")
+        print(f"✗ PySide6 import failed: {e}")
         return False
     
     try:
@@ -83,7 +83,7 @@ def test_ui_components():
     print("\nTesting UI components...")
     
     try:
-        from PyQt5.QtWidgets import QApplication
+        from PySide6.QtWidgets import QApplication
         app = QApplication(sys.argv)
         
         # Test tab creation

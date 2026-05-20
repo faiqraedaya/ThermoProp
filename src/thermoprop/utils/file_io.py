@@ -8,16 +8,16 @@ from typing import Dict, Any, List
 
 class FileIO:
     """Utility class for file input/output operations"""
-    
+
     @staticmethod
     def export_results(filename: str, results: Dict[str, Any]) -> bool:
         """
         Export calculation results to file
-        
+
         Args:
             filename: Output file path
             results: Dictionary of results to export
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -31,7 +31,7 @@ class FileIO:
         except Exception as e:
             print(f"Export error: {str(e)}")
             return False
-    
+
     @staticmethod
     def _export_to_excel(filename: str, results: Dict[str, Any]) -> bool:
         """Export results to Excel file"""
@@ -57,7 +57,7 @@ class FileIO:
         except Exception as e:
             print(f"Excel export error: {str(e)}")
             return False
-    
+
     @staticmethod
     def _export_to_csv(filename: str, results: Dict[str, Any]) -> bool:
         """Export results to CSV file"""
@@ -66,7 +66,7 @@ class FileIO:
             if results:
                 first_key = list(results.keys())[0]
                 data = results[first_key]
-                
+
                 if isinstance(data, pd.DataFrame):
                     data.to_csv(filename, index=False)
                 elif isinstance(data, list) and len(data) > 0:
@@ -86,7 +86,7 @@ class FileIO:
         except Exception as e:
             print(f"CSV export error: {str(e)}")
             return False
-    
+
     @staticmethod
     def _export_to_json(filename: str, results: Dict[str, Any]) -> bool:
         """Export results to JSON file"""
@@ -100,34 +100,34 @@ class FileIO:
                     json_data[key] = value
                 else:
                     json_data[key] = str(value)
-            
+
             with open(filename, 'w') as f:
                 json.dump(json_data, f, indent=2)
             return True
         except Exception as e:
             print(f"JSON export error: {str(e)}")
             return False
-    
+
     @staticmethod
     def table_to_dataframe(table) -> pd.DataFrame:
         """
         Convert QTableWidget to pandas DataFrame
-        
+
         Args:
             table: QTableWidget instance
-            
+
         Returns:
             pandas DataFrame
         """
         try:
             data = []
             headers = []
-            
+
             # Get headers
             for col in range(table.columnCount()):
                 header_item = table.horizontalHeaderItem(col)
                 headers.append(header_item.text() if header_item else f"Column_{col}")
-            
+
             # Get data
             for row in range(table.rowCount()):
                 row_data = []
@@ -135,9 +135,8 @@ class FileIO:
                     item = table.item(row, col)
                     row_data.append(item.text() if item else "")
                 data.append(row_data)
-            
+
             return pd.DataFrame(data, columns=headers)
         except Exception as e:
             print(f"Table conversion error: {str(e)}")
             return pd.DataFrame()
-    

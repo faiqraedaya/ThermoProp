@@ -17,7 +17,7 @@ ThermoProp is an enhanced thermophysical properties calculator designed for risk
 ## Requirements
 - Python 3.7+
 - [CoolProp](http://www.coolprop.org/)
-- PyQt5
+- PySide6
 - matplotlib
 - pandas
 - numpy
@@ -33,7 +33,7 @@ ThermoProp is an enhanced thermophysical properties calculator designed for risk
 2. **Install dependencies:**
    You can use pip to install the required packages:
    ```bash
-   pip install CoolProp PyQt5 matplotlib pandas numpy scipy pint
+   pip install CoolProp PySide6 matplotlib pandas numpy scipy pint
    ```
 
 ## Usage
@@ -62,5 +62,5 @@ This project is provided under the MIT License.
 
 ## Acknowledgments
 - [CoolProp](http://www.coolprop.org/) for thermophysical property calculations.
-- PyQt5 for the GUI framework.
+- PySide6 for the GUI framework.
 - matplotlib for plotting and visualization.

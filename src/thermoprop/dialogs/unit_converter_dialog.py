@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QComboBox,  
-    QTableWidget, QTableWidgetItem, QGroupBox, QDoubleSpinBox, 
+from PySide6.QtWidgets import (
+    QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QComboBox,
+    QTableWidget, QTableWidgetItem, QGroupBox, QDoubleSpinBox,
     QDialog, QDialogButtonBox,
 )
 import pint
@@ -10,17 +10,17 @@ ureg = pint.UnitRegistry()
 
 class UnitConverterDialog(QDialog):
     """Unit conversion dialog"""
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.init_ui()
-        
+
     def init_ui(self):
         self.setWindowTitle('Unit Converter')
         self.setGeometry(300, 300, 500, 400)
-        
+
         layout = QVBoxLayout(self)
-        
+
         # Property type selection
         prop_layout = QHBoxLayout()
         prop_layout.addWidget(QLabel("Property Type:"))
@@ -32,11 +32,11 @@ class UnitConverterDialog(QDialog):
         self.prop_type.currentTextChanged.connect(self.update_units)
         prop_layout.addWidget(self.prop_type)
         layout.addLayout(prop_layout)
-        
+
         # Conversion section
         conv_group = QGroupBox("Unit Conversion")
         conv_layout = QGridLayout(conv_group)
-        
+
         # From
         conv_layout.addWidget(QLabel("From:"), 0, 0)
         self.from_value = QDoubleSpinBox()
@@ -44,10 +44,10 @@ class UnitConverterDialog(QDialog):
         self.from_value.setDecimals(6)
         self.from_value.valueChanged.connect(self.convert)
         conv_layout.addWidget(self.from_value, 0, 1)
-        
+
         self.from_unit = QComboBox()
         conv_layout.addWidget(self.from_unit, 0, 2)
-        
+
         # To
         conv_layout.addWidget(QLabel("To:"), 1, 0)
         self.to_value = QDoubleSpinBox()
@@ -55,36 +55,36 @@ class UnitConverterDialog(QDialog):
         self.to_value.setDecimals(6)
         self.to_value.setReadOnly(True)
         conv_layout.addWidget(self.to_value, 1, 1)
-        
+
         self.to_unit = QComboBox()
         self.to_unit.currentTextChanged.connect(self.convert)
         conv_layout.addWidget(self.to_unit, 1, 2)
-        
+
         layout.addWidget(conv_group)
-        
+
         # Common conversions table
         table_group = QGroupBox("Common Conversions")
         table_layout = QVBoxLayout(table_group)
-        
+
         self.conv_table = QTableWidget()
         self.conv_table.setColumnCount(3)
         self.conv_table.setHorizontalHeaderLabels(['From', 'To', 'Factor'])
         table_layout.addWidget(self.conv_table)
-        
+
         layout.addWidget(table_group)
-        
+
         # Initialize
         self.update_units()
-        
+
         # Dialog buttons
         button_box = QDialogButtonBox(QDialogButtonBox.Close)
         button_box.rejected.connect(self.reject)
         layout.addWidget(button_box)
-    
+
     def update_units(self):
         """Update available units based on property type"""
         prop_type = self.prop_type.currentText()
-        
+
         unit_map = {
             'Temperature': ['°C', 'K', '°F', '°R'],
             'Pressure': ['Pa', 'kPa', 'MPa', 'bar', 'psi', 'atm', 'mmHg', 'inHg'],
@@ -97,17 +97,17 @@ class UnitConverterDialog(QDialog):
             'Mass': ['kg', 'g', 'mg', 'lb', 'oz', 'ton'],
             'Force': ['N', 'kN', 'lbf', 'kgf', 'dyne']
         }
-        
+
         units = unit_map.get(prop_type, [])
-        
+
         self.from_unit.clear()
         self.from_unit.addItems(units)
-        
+
         self.to_unit.clear()
         self.to_unit.addItems(units)
-        
+
         self.update_conversion_table(prop_type)
-    
+
     def convert(self):
         """Perform unit conversion"""
         try:
@@ -115,16 +115,16 @@ class UnitConverterDialog(QDialog):
             from_unit = self.from_unit.currentText()
             to_unit = self.to_unit.currentText()
             prop_type = self.prop_type.currentText()
-            
+
             # Use pint for conversion
             quantity = value * ureg(from_unit)
             converted = quantity.to(to_unit)
-            
+
             self.to_value.setValue(converted.magnitude)
-            
+
         except Exception as e:
             self.to_value.setValue(0)
-    
+
     def update_conversion_table(self, prop_type):
         """Update common conversions table"""
         common_conversions = {
@@ -144,13 +144,13 @@ class UnitConverterDialog(QDialog):
                 ('BTU', 'J', '× 1055')
             ]
         }
-        
+
         conversions = common_conversions.get(prop_type, [])
         self.conv_table.setRowCount(len(conversions))
-        
+
         for i, (from_u, to_u, factor) in enumerate(conversions):
             self.conv_table.setItem(i, 0, QTableWidgetItem(from_u))
             self.conv_table.setItem(i, 1, QTableWidgetItem(to_u))
             self.conv_table.setItem(i, 2, QTableWidgetItem(factor))
-        
+
         self.conv_table.resizeColumnsToContents()

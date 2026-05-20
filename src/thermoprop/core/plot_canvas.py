@@ -6,18 +6,18 @@ from CoolProp.CoolProp import PropsSI
 
 class PlotCanvas(FigureCanvas):
     """Enhanced matplotlib canvas with more plotting capabilities"""
-    
+
     def __init__(self, parent=None, width=12, height=8, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         super().__init__(self.fig)
         self.setParent(parent)
-        
-    def plot_diagram(self, fluid, plot_type, show_grid=True, show_legend=True, 
+
+    def plot_diagram(self, fluid, plot_type, show_grid=True, show_legend=True,
                     x_axis='Auto', y_axis='Auto'):
         """Enhanced plot generation with customization options"""
         self.fig.clear()
-        
+
         try:
             if plot_type == 'T-S Diagram':
                 self._plot_ts_diagram(fluid, show_grid, show_legend)
@@ -31,23 +31,23 @@ class PlotCanvas(FigureCanvas):
                 self._plot_property_vs_temp(fluid, show_grid, show_legend)
             elif plot_type == 'Property vs Pressure':
                 self._plot_property_vs_pressure(fluid, show_grid, show_legend)
-            elif plot_type == 'Saturation Curves':
+            elif plot_type == 'Saturation Curve':
                 self._plot_saturation_curve(fluid, show_grid, show_legend)
             elif plot_type == 'Phase Envelope':
                 self._plot_phase_envelope(fluid, show_grid, show_legend)
             elif plot_type == 'Custom Plot':
                 self._plot_custom(fluid, x_axis, y_axis, show_grid, show_legend)
-            
+
             self.fig.tight_layout()
             self.draw()
-            
+
         except Exception as e:
             ax = self.fig.add_subplot(111)
-            ax.text(0.5, 0.5, f'Plot generation failed:\n{str(e)}', 
+            ax.text(0.5, 0.5, f'Plot generation failed:\n{str(e)}',
                    transform=ax.transAxes, ha='center', va='center',
                    bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
             self.draw()
-    
+
     def _plot_ts_diagram(self, fluid, show_grid=True, show_legend=True):
         """Plot Temperature-Entropy diagram"""
         ax = self.fig.add_subplot(111)
@@ -80,16 +80,16 @@ class PlotCanvas(FigureCanvas):
     def _plot_hs_diagram(self, fluid, show_grid=True, show_legend=True):
         """Plot Enthalpy-Entropy diagram"""
         ax = self.fig.add_subplot(111)
-        
+
         try:
             # Get critical properties
             Tc = PropsSI('Tcrit', fluid)
             Pc = PropsSI('Pcrit', fluid)
-            
+
             # Generate saturation curve
             T_sat = np.linspace(273.16, Tc * 0.99, 100)
             H_liq, H_vap, S_liq, S_vap = [], [], [], []
-            
+
             for T in T_sat:
                 try:
                     H_liq.append(PropsSI('H', 'T', T, 'Q', 0, fluid))
@@ -101,20 +101,20 @@ class PlotCanvas(FigureCanvas):
                     H_vap.append(np.nan)
                     S_liq.append(np.nan)
                     S_vap.append(np.nan)
-            
+
             # Plot saturation curves
-            ax.plot(np.array(S_liq)/1000, np.array(H_liq)/1000, 'b-', 
+            ax.plot(np.array(S_liq)/1000, np.array(H_liq)/1000, 'b-',
                    linewidth=2, label='Saturated Liquid')
-            ax.plot(np.array(S_vap)/1000, np.array(H_vap)/1000, 'r-', 
+            ax.plot(np.array(S_vap)/1000, np.array(H_vap)/1000, 'r-',
                    linewidth=2, label='Saturated Vapor')
-            
+
             # Add isobars
             pressures = [0.1, 0.5, 1.0, 5.0, 10.0]  # bar
             for P in pressures:
                 if P * 100000 < Pc:
                     T_range = np.linspace(273.16, min(Tc * 1.2, 500), 50)
                     H_isobar, S_isobar = [], []
-                    
+
                     for T in T_range:
                         try:
                             H = PropsSI('H', 'T', T, 'P', P * 100000, fluid)
@@ -123,20 +123,20 @@ class PlotCanvas(FigureCanvas):
                             S_isobar.append(S)
                         except:
                             continue
-                    
+
                     if len(H_isobar) > 5:
-                        ax.plot(np.array(S_isobar)/1000, np.array(H_isobar)/1000, 
+                        ax.plot(np.array(S_isobar)/1000, np.array(H_isobar)/1000,
                                '--', alpha=0.7, label=f'{P} bar')
-            
+
             ax.set_xlabel('Entropy (kJ/kg·K)')
             ax.set_ylabel('Enthalpy (kJ/kg)')
             ax.set_title(f'H-S Diagram for {fluid}')
-            
+
             if show_grid:
                 ax.grid(True, alpha=0.3)
             if show_legend:
                 ax.legend()
-                
+
         except Exception as e:
             raise Exception(f"H-S diagram error: {str(e)}")
 
@@ -145,14 +145,14 @@ class PlotCanvas(FigureCanvas):
         try:
             T_range = np.linspace(273.16, 373.15, 100)  # 0-100°C
             P_const = 101325  # 1 atm
-            
+
             properties = {
                 'Density': [],
                 'Viscosity': [],
                 'Thermal Conductivity': [],
                 'Specific Heat (Cp)': []
             }
-            
+
             for T in T_range:
                 try:
                     properties['Density'].append(PropsSI('D', 'T', T, 'P', P_const, fluid))
@@ -162,43 +162,43 @@ class PlotCanvas(FigureCanvas):
                 except:
                     for prop in properties:
                         properties[prop].append(np.nan)
-            
+
             # Clear the figure and create subplots
             self.fig.clear()
             ax1 = self.fig.add_subplot(221)
             ax2 = self.fig.add_subplot(222)
             ax3 = self.fig.add_subplot(223)
             ax4 = self.fig.add_subplot(224)
-            
+
             # Plot each property
             ax1.plot(T_range - 273.15, properties['Density'], 'b-', linewidth=2)
             ax1.set_ylabel('Density (kg/m³)')
             ax1.set_xlabel('Temperature (°C)')
             ax1.grid(True, alpha=0.3)
             ax1.set_title('Density vs Temperature')
-            
+
             ax2.plot(T_range - 273.15, properties['Viscosity'], 'r-', linewidth=2)
             ax2.set_ylabel('Viscosity (mPa·s)')
             ax2.set_xlabel('Temperature (°C)')
             ax2.grid(True, alpha=0.3)
             ax2.set_title('Viscosity vs Temperature')
-            
+
             ax3.plot(T_range - 273.15, properties['Thermal Conductivity'], 'g-', linewidth=2)
             ax3.set_ylabel('Thermal Conductivity (W/m·K)')
             ax3.set_xlabel('Temperature (°C)')
             ax3.grid(True, alpha=0.3)
             ax3.set_title('Thermal Conductivity vs Temperature')
-            
+
             ax4.plot(T_range - 273.15, properties['Specific Heat (Cp)'], 'm-', linewidth=2)
             ax4.set_ylabel('Specific Heat Cp (kJ/kg·K)')
             ax4.set_xlabel('Temperature (°C)')
             ax4.grid(True, alpha=0.3)
             ax4.set_title('Specific Heat vs Temperature')
-            
+
             self.fig.suptitle(f'Property Variations for {fluid} at 1 atm')
             self.fig.tight_layout()
             self.draw()
-            
+
         except Exception as e:
             raise Exception(f"Property vs Temperature plot error: {str(e)}")
 
@@ -207,66 +207,66 @@ class PlotCanvas(FigureCanvas):
         try:
             P_range = np.logspace(3, 7, 100)  # 1 kPa to 10 MPa
             T_const = 298.15  # 25°C
-            
+
             properties = {
                 'Density': [],
                 'Viscosity': [],
                 'Thermal Conductivity': [],
                 'Compressibility Factor': []
             }
-            
+
             P_valid = []
-            
+
             for P in P_range:
                 try:
                     rho = PropsSI('D', 'T', T_const, 'P', P, fluid)
                     mu = PropsSI('V', 'T', T_const, 'P', P, fluid) * 1000  # mPa·s
                     k = PropsSI('L', 'T', T_const, 'P', P, fluid)
-                    
+
                     # Calculate compressibility factor
                     M = PropsSI('M', fluid)
                     R = 8314.462618  # J/kmol/K
                     Z = P / (rho * R * T_const / M)
-                    
+
                     properties['Density'].append(rho)
                     properties['Viscosity'].append(mu)
                     properties['Thermal Conductivity'].append(k)
                     properties['Compressibility Factor'].append(Z)
                     P_valid.append(P)
-                    
+
                 except:
                     continue
-            
+
             # Clear the figure and create subplots
             self.fig.clear()
             ax1 = self.fig.add_subplot(221)
             ax2 = self.fig.add_subplot(222)
             ax3 = self.fig.add_subplot(223)
             ax4 = self.fig.add_subplot(224)
-            
+
             P_bar = np.array(P_valid) / 100000  # Convert to bar
-            
+
             ax1.semilogx(P_bar, properties['Density'], 'b-', linewidth=2)
             ax1.set_ylabel('Density (kg/m³)')
             ax1.set_xlabel('Pressure (bar)')
             ax1.set_title('Density vs Pressure')
             if show_grid:
                 ax1.grid(True, alpha=0.3)
-            
+
             ax2.semilogx(P_bar, properties['Viscosity'], 'r-', linewidth=2)
             ax2.set_ylabel('Viscosity (mPa·s)')
             ax2.set_xlabel('Pressure (bar)')
             ax2.set_title('Viscosity vs Pressure')
             if show_grid:
                 ax2.grid(True, alpha=0.3)
-            
+
             ax3.semilogx(P_bar, properties['Thermal Conductivity'], 'g-', linewidth=2)
             ax3.set_ylabel('Thermal Conductivity (W/m·K)')
             ax3.set_xlabel('Pressure (bar)')
             ax3.set_title('Thermal Conductivity vs Pressure')
             if show_grid:
                 ax3.grid(True, alpha=0.3)
-            
+
             ax4.semilogx(P_bar, properties['Compressibility Factor'], 'm-', linewidth=2)
             ax4.set_ylabel('Compressibility Factor (-)')
             ax4.set_xlabel('Pressure (bar)')
@@ -276,31 +276,33 @@ class PlotCanvas(FigureCanvas):
                 ax4.grid(True, alpha=0.3)
             if show_legend:
                 ax4.legend()
-            
+
             self.fig.suptitle(f'Property Variations for {fluid} at 25°C')
             self.fig.tight_layout()
             self.draw()
-            
+
         except Exception as e:
             raise Exception(f"Property vs Pressure plot error: {str(e)}")
-    
+
     def plot_saturation_curve(self, T_sat, P_sat, rho_liq, rho_vap, fluid, show_grid=True, show_legend=True):
         """Plot saturation curve data"""
         self.fig.clear()
-        
-        # Create subplots
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 8))
-        
+
+        ax1 = self.fig.add_subplot(221)
+        ax2 = self.fig.add_subplot(222)
+        ax3 = self.fig.add_subplot(223)
+        ax4 = self.fig.add_subplot(224)
+
         T_celsius = np.array(T_sat) - 273.15
         P_bar = np.array(P_sat) / 100000
-        
+
         # Temperature vs Pressure
         ax1.semilogy(T_celsius, P_bar, 'b-', linewidth=2)
         ax1.set_xlabel('Temperature (°C)')
         ax1.set_ylabel('Pressure (bar)')
         ax1.set_title('Saturation Pressure vs Temperature')
         ax1.grid(True, alpha=0.3)
-        
+
         # Density vs Temperature
         ax2.plot(T_celsius, rho_liq, 'b-', linewidth=2, label='Liquid')
         ax2.plot(T_celsius, rho_vap, 'r-', linewidth=2, label='Vapor')
@@ -309,7 +311,7 @@ class PlotCanvas(FigureCanvas):
         ax2.set_title('Saturation Density vs Temperature')
         ax2.legend()
         ax2.grid(True, alpha=0.3)
-        
+
         # P-V diagram
         V_liq = 1.0 / np.array(rho_liq)
         V_vap = 1.0 / np.array(rho_vap)
@@ -320,7 +322,7 @@ class PlotCanvas(FigureCanvas):
         ax3.set_title('P-V Saturation Curve')
         ax3.legend()
         ax3.grid(True, alpha=0.3)
-        
+
         # Density ratio
         density_ratio = np.array(rho_liq) / np.array(rho_vap)
         ax4.semilogy(T_celsius, density_ratio, 'g-', linewidth=2)
@@ -328,37 +330,36 @@ class PlotCanvas(FigureCanvas):
         ax4.set_ylabel('Density Ratio (ρ_liq/ρ_vap)')
         ax4.set_title('Liquid/Vapor Density Ratio')
         ax4.grid(True, alpha=0.3)
-        
-        fig.suptitle(f'Saturation Properties for {fluid}')
-        fig.tight_layout()
-        
-        # Replace the original figure
-        self.fig = fig
+
+        self.fig.suptitle(f'Saturation Properties for {fluid}')
+        self.fig.tight_layout()
         self.draw()
-    
+
     def plot_process_path(self, results, process_type, fluid, show_grid=True, show_legend=True):
         """Plot process path results"""
         self.fig.clear()
-        
+
         try:
-            # Create subplots
-            fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 8))
-            
+            ax1 = self.fig.add_subplot(221)
+            ax2 = self.fig.add_subplot(222)
+            ax3 = self.fig.add_subplot(223)
+            ax4 = self.fig.add_subplot(224)
+
             T_data = np.array(results['Temperature']) - 273.15  # Convert to °C
             P_data = np.array(results['Pressure']) / 100000     # Convert to bar
-            
+
             # Remove NaN values
             valid_idx = ~(np.isnan(T_data) | np.isnan(P_data))
             T_valid = T_data[valid_idx]
             P_valid = P_data[valid_idx]
-            
+
             # T-P diagram
             ax1.plot(T_valid, P_valid, 'b-', linewidth=2, marker='o', markersize=3)
             ax1.set_xlabel('Temperature (°C)')
             ax1.set_ylabel('Pressure (bar)')
             ax1.set_title(f'{process_type} Process - T-P Path')
             ax1.grid(True, alpha=0.3)
-            
+
             # Property evolution
             if 'Enthalpy' in results:
                 H_data = np.array(results['Enthalpy'])[valid_idx] / 1000  # kJ/kg
@@ -367,7 +368,7 @@ class PlotCanvas(FigureCanvas):
                 ax2.set_ylabel('Enthalpy (kJ/kg)')
                 ax2.set_title('Enthalpy vs Temperature')
                 ax2.grid(True, alpha=0.3)
-            
+
             if 'Density' in results:
                 rho_data = np.array(results['Density'])[valid_idx]
                 ax3.plot(T_valid, rho_data, 'g-', linewidth=2, marker='^', markersize=3)
@@ -375,7 +376,7 @@ class PlotCanvas(FigureCanvas):
                 ax3.set_ylabel('Density (kg/m³)')
                 ax3.set_title('Density vs Temperature')
                 ax3.grid(True, alpha=0.3)
-            
+
             if 'Entropy' in results:
                 S_data = np.array(results['Entropy'])[valid_idx] / 1000  # kJ/kg/K
                 ax4.plot(T_valid, S_data, 'm-', linewidth=2, marker='d', markersize=3)
@@ -383,20 +384,18 @@ class PlotCanvas(FigureCanvas):
                 ax4.set_ylabel('Entropy (kJ/kg·K)')
                 ax4.set_title('Entropy vs Temperature')
                 ax4.grid(True, alpha=0.3)
-            
-            fig.suptitle(f'{process_type} Process for {fluid}')
-            fig.tight_layout()
-            
-            # Replace the original figure
-            self.fig = fig
+
+            self.fig.suptitle(f'{process_type} Process for {fluid}')
+            self.fig.tight_layout()
             self.draw()
-            
+
         except Exception as e:
+            self.fig.clear()
             ax = self.fig.add_subplot(111)
-            ax.text(0.5, 0.5, f'Process plot failed:\n{str(e)}', 
+            ax.text(0.5, 0.5, f'Process plot failed:\n{str(e)}',
                    transform=ax.transAxes, ha='center', va='center')
             self.draw()
-    
+
     def _plot_ph_diagram(self, fluid, show_grid=True, show_legend=True):
         """Plot Pressure-Enthalpy diagram"""
         self.fig.clear()
@@ -405,11 +404,11 @@ class PlotCanvas(FigureCanvas):
         try:
             # Get critical properties
             Tc = PropsSI('Tcrit', fluid)
-            
+
             # Generate saturation curve
             T_sat = np.linspace(273.16, Tc * 0.99, 100)
             H_liq, H_vap, P_sat = [], [], []
-            
+
             for T in T_sat:
                 try:
                     P = PropsSI('P', 'T', T, 'Q', 0, fluid)
@@ -418,13 +417,13 @@ class PlotCanvas(FigureCanvas):
                     P_sat.append(P)
                 except:
                     continue
-                    
+
             # Plot saturation curves
-            ax.plot(np.array(H_liq)/1000, np.array(P_sat)/100000, 'b-', 
+            ax.plot(np.array(H_liq)/1000, np.array(P_sat)/100000, 'b-',
                    linewidth=2, label='Saturated Liquid')
-            ax.plot(np.array(H_vap)/1000, np.array(P_sat)/100000, 'r-', 
+            ax.plot(np.array(H_vap)/1000, np.array(P_sat)/100000, 'r-',
                    linewidth=2, label='Saturated Vapor')
-            
+
             ax.set_xlabel('Enthalpy (kJ/kg)')
             ax.set_ylabel('Pressure (bar)')
             ax.set_title(f'P-H Diagram for {fluid}')
@@ -433,10 +432,10 @@ class PlotCanvas(FigureCanvas):
                 ax.legend()
             if show_grid:
                 ax.grid(True, alpha=0.3)
-            
+
         except Exception as e:
             raise Exception(f"P-H diagram error: {str(e)}")
-    
+
     def _plot_pv_diagram(self, fluid, show_grid=True, show_legend=True):
         """Plot Pressure-Volume diagram"""
         self.fig.clear()
@@ -445,11 +444,11 @@ class PlotCanvas(FigureCanvas):
         try:
             # Get critical properties
             Tc = PropsSI('Tcrit', fluid)
-            
+
             # Generate saturation curve
             T_sat = np.linspace(273.16, Tc * 0.99, 50)
             V_liq, V_vap, P_sat = [], [], []
-            
+
             for T in T_sat:
                 try:
                     P = PropsSI('P', 'T', T, 'Q', 0, fluid)
@@ -460,11 +459,11 @@ class PlotCanvas(FigureCanvas):
                     P_sat.append(P)
                 except:
                     continue
-                    
+
             # Plot saturation curves
             ax.plot(V_liq, np.array(P_sat)/100000, 'b-', linewidth=2, label='Saturated Liquid')
             ax.plot(V_vap, np.array(P_sat)/100000, 'r-', linewidth=2, label='Saturated Vapor')
-            
+
             ax.set_xlabel('Specific Volume (m³/kg)')
             ax.set_ylabel('Pressure (bar)')
             ax.set_title(f'P-V Diagram for {fluid}')
@@ -474,7 +473,7 @@ class PlotCanvas(FigureCanvas):
                 ax.legend()
             if show_grid:
                 ax.grid(True, alpha=0.3)
-            
+
         except Exception as e:
             raise Exception(f"P-V diagram error: {str(e)}")
 
@@ -566,7 +565,7 @@ class PlotCanvas(FigureCanvas):
                 Ptriple = PropsSI('Ptriple', fluid)
             except:
                 Ptriple = 611.657  # Default for water if triple point not available
-            
+
             # Generate saturation curve data with more points for smoother curves
             T_sat = np.linspace(Ttriple, Tc * 0.999, 200)
             P_sat = []
@@ -575,39 +574,39 @@ class PlotCanvas(FigureCanvas):
                     P_sat.append(PropsSI('P', 'T', T, 'Q', 0, fluid))
                 except:
                     P_sat.append(np.nan)
-            
+
             # Create plot
             ax = self.fig.add_subplot(111)
-            
+
             # Convert to plotting units
             T_plot = T_sat - 273.15
             P_plot = np.array(P_sat) / 100000
-            
+
             # Create upper and lower bounds for phase zones
             T_upper = np.linspace(Ttriple-273.15, Tc*1.5-273.15, 200)
             P_upper = np.full_like(T_upper, Pc*10/100000)
-            
+
             # Plot phase zones with smooth boundaries
             # Liquid zone
             ax.fill_between(T_plot, P_plot, P_upper,
                           color='lightblue', alpha=0.3, label='Liquid')
-            
+
             # Vapor zone
-            ax.fill_between(T_plot, P_plot, 
+            ax.fill_between(T_plot, P_plot,
                           np.full_like(T_plot, Ptriple/100000),
                           color='lightgreen', alpha=0.3, label='Vapor')
-            
+
             # Supercritical zone
             ax.fill_between(T_upper, P_upper,
                           np.full_like(T_upper, Pc/100000),
                           color='lightyellow', alpha=0.3, label='Supercritical')
-            
+
             # Plot saturation curve
             ax.semilogy(T_plot, P_plot, 'b-', linewidth=2, label='Phase Envelope')
-            
+
             # Add critical point marker
             ax.plot(Tc-273.15, Pc/100000, 'ro', label='Critical Point')
-            
+
             # Add labels and formatting
             ax.set_xlabel('Temperature (°C)')
             ax.set_ylabel('Pressure (bar)')
@@ -616,14 +615,14 @@ class PlotCanvas(FigureCanvas):
                 ax.grid(True, alpha=0.3)
             if show_legend:
                 ax.legend()
-            
+
             # Set reasonable axis limits
             ax.set_xlim(Ttriple-273.15, Tc*1.5-273.15)
             ax.set_ylim(Ptriple/100000, Pc*10/100000)
-            
+
             self.fig.tight_layout()
             self.draw()
-            
+
         except Exception as e:
             ax = self.fig.add_subplot(111)
             ax.text(0.5, 0.5, f'Phase envelope plot failed:\n{str(e)}',

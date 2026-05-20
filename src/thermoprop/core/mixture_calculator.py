@@ -12,7 +12,7 @@ from .mixture_component import MixtureComponent
 
 class MixtureCalculator:
     """Enhanced calculator for pure components and mixtures"""
-    
+
     def __init__(self):
         """Initialize the mixture calculator"""
         self.fluids = self._get_available_fluids()
@@ -39,7 +39,7 @@ class MixtureCalculator:
             'Isothermal Compressibility': ('isothermal_compressibility', '1/Pa'),
             'Isentropic Bulk Modulus': ('isentropic_bulk_modulus', 'Pa'),
         }
-        
+
         # Common mixture systems
         self.predefined_mixtures = {
             'Air': [
@@ -62,17 +62,17 @@ class MixtureCalculator:
                 ('Oxygen', 0.05)
             ]
         }
-    
+
     def _get_available_fluids(self) -> List[str]:
         """
         Get comprehensive list of available fluids
-        
+
         Returns:
             List of available fluid names
         """
         try:
             fluid_list = CP.get_global_param_string("FluidsList").split(',')
-            
+
             # Add common fluids and aliases
             common_fluids = [
                 'Water', 'Air', 'Nitrogen', 'Oxygen', 'CO2', 'Methane', 'Ethane',
@@ -81,7 +81,7 @@ class MixtureCalculator:
                 'Hydrogen', 'Helium', 'Argon', 'Benzene', 'Toluene', 'Ethanol',
                 'Acetone', 'CarbonMonoxide', 'SulfurDioxide', 'HydrogenSulfide'
             ]
-            
+
             all_fluids = list(set(fluid_list + common_fluids))
             all_fluids.sort()
             return all_fluids
@@ -89,83 +89,83 @@ class MixtureCalculator:
             print(f"Warning: Failed to get fluid list: {str(e)}")
             # Fallback list
             return ['Water', 'Air', 'Nitrogen', 'Oxygen', 'CO2', 'Methane', 'Propane']
-    
+
     def calculate_mixture_properties(
-        self, 
-        components: List[MixtureComponent], 
-        T: float, 
-        P: float, 
+        self,
+        components: List[MixtureComponent],
+        T: float,
+        P: float,
         model: str = 'Ideal Gas'
     ) -> Tuple[Optional[Dict[str, Tuple[float, str]]], Optional[str]]:
         """
         Calculate mixture properties using specified model
-        
+
         Args:
             components: List of mixture components
             T: Temperature in K
             P: Pressure in Pa
             model: Mixture model to use ('Ideal Gas' or 'Humid Air')
-            
+
         Returns:
             Tuple of (results dictionary, error message if any)
         """
         if not components:
             return None, "No components provided"
-        
+
         if model not in self.mixture_models:
             return None, f"Invalid model: {model}"
-        
+
         try:
             if model == 'Humid Air':
                 return self._calculate_humid_air(components, T, P)
             else:
                 return self._calculate_ideal_gas_mixture(components, T, P)
-                
+
         except Exception as e:
             return None, f"Calculation error: {str(e)}"
-    
+
     def _calculate_ideal_gas_mixture(
-        self, 
-        components: List[MixtureComponent], 
-        T: float, 
+        self,
+        components: List[MixtureComponent],
+        T: float,
         P: float
     ) -> Tuple[Dict[str, Tuple[float, str]], None]:
         """
         Calculate mixture properties using ideal gas mixing rules
-        
+
         Args:
             components: List of mixture components
             T: Temperature in K
             P: Pressure in Pa
-            
+
         Returns:
             Tuple of (results dictionary, None)
-            
+
         Raises:
             ValueError: If total mole fractions is zero
         """
         results = {}
-        
+
         # Normalize mole fractions
         total_moles = sum(comp.mole_fraction for comp in components)
         if total_moles == 0:
             raise ValueError("Total mole fractions cannot be zero")
-        
+
         # Calculate mixture molecular weight
         M_mix = sum(comp.mole_fraction * comp.molecular_weight for comp in components) / total_moles
         results['Molar Mass'] = (M_mix / 1000, 'kg/mol')  # Convert to kg/mol
-        
+
         # Calculate mixture density (ideal gas law)
         R = 8314.462618  # J/kmol/K
         rho_mix = (P * M_mix) / (R * T)
         results['Density'] = (rho_mix, 'kg/m³')
-        
+
         # Calculate mixture properties using mixing rules
         Cp_mix = 0
         Cv_mix = 0
         mu_mix = 0
         k_mix = 0
-        
+
         for comp in components:
             if comp.mole_fraction > 0:
                 try:
@@ -174,56 +174,59 @@ class MixtureCalculator:
                     Cv_i = PropsSI('Cvmass', 'T', T, 'P', P, comp.name)
                     mu_i = PropsSI('V', 'T', T, 'P', P, comp.name)
                     k_i = PropsSI('L', 'T', T, 'P', P, comp.name)
-                    
+
+                    # Use normalized mole fraction so mass/mole fractions are
+                    # consistent regardless of whether inputs sum to exactly 1
+                    mole_frac = comp.mole_fraction / total_moles
+                    mass_frac = (mole_frac * comp.molecular_weight) / M_mix
+
                     # Mass-weighted mixing for heat capacities
-                    mass_frac = (comp.mole_fraction * comp.molecular_weight) / M_mix
                     Cp_mix += mass_frac * Cp_i
                     Cv_mix += mass_frac * Cv_i
-                    
+
                     # Mole-weighted mixing for transport properties (approximation)
-                    mole_frac = comp.mole_fraction / total_moles
                     mu_mix += mole_frac * mu_i
                     k_mix += mole_frac * k_i
-                    
+
                 except Exception as e:
                     print(f"Warning: Failed to calculate properties for {comp.name}: {str(e)}")
                     continue
-        
+
         results['Isobaric Heat Capacity'] = (Cp_mix, 'J/kg/K')
         results['Isochoric Heat Capacity'] = (Cv_mix, 'J/kg/K')
         results['Viscosity'] = (mu_mix, 'Pa·s')
         results['Thermal Conductivity'] = (k_mix, 'W/m/K')
-        
+
         # Calculate other properties
         gamma = Cp_mix / Cv_mix if Cv_mix > 0 else 1.4
         a_mix = np.sqrt(gamma * R * T / M_mix)  # Speed of sound
         results['Speed of Sound'] = (a_mix, 'm/s')
-        
+
         # Compressibility factor (ideal gas = 1)
         results['Compressibility Factor'] = (1.0, '-')
-        
+
         # Enthalpy and entropy (reference state dependent)
         h_mix = Cp_mix * T  # Simplified
         s_mix = Cp_mix * np.log(T) - (R/M_mix) * np.log(P)  # Simplified
         results['Enthalpy'] = (h_mix, 'J/kg')
         results['Entropy'] = (s_mix, 'J/kg/K')
-        
+
         return results, None
-    
+
     def _calculate_humid_air(
-        self, 
-        components: List[MixtureComponent], 
-        T: float, 
+        self,
+        components: List[MixtureComponent],
+        T: float,
         P: float
     ) -> Tuple[Dict[str, Tuple[float, str]], None]:
         """
         Calculate humid air properties
-        
+
         Args:
             components: List of mixture components
             T: Temperature in K
             P: Pressure in Pa
-            
+
         Returns:
             Tuple of (results dictionary, None)
         """
@@ -234,43 +237,43 @@ class MixtureCalculator:
                 if comp.name.lower() in ['water', 'h2o']:
                     water_fraction = comp.mole_fraction
                     break
-            
+
             # Convert to relative humidity (approximation)
             P_sat = PropsSI('P', 'T', T, 'Q', 0, 'Water')
             RH = min(water_fraction * P / P_sat, 1.0)
-            
+
             results = {}
-            results['Density'] = (HAPropsSI('Vha', 'T', T, 'P', P, 'R', RH), 'kg/m³')
+            results['Density'] = (1.0 / HAPropsSI('Vha', 'T', T, 'P', P, 'R', RH), 'kg/m³')
             results['Enthalpy'] = (HAPropsSI('H', 'T', T, 'P', P, 'R', RH), 'J/kg')
             results['Entropy'] = (HAPropsSI('S', 'T', T, 'P', P, 'R', RH), 'J/kg/K')
             results['Relative Humidity'] = (RH * 100, '%')
             results['Humidity Ratio'] = (HAPropsSI('W', 'T', T, 'P', P, 'R', RH), 'kg/kg')
-            
+
             return results, None
-            
+
         except Exception as e:
             print(f"Warning: Humid air calculation failed: {str(e)}")
             return self._calculate_ideal_gas_mixture(components, T, P)
-    
+
     def calculate_saturation_properties(
-        self, 
-        fluid: str, 
-        sat_type: str, 
-        sat_value: float, 
+        self,
+        fluid: str,
+        sat_type: str,
+        sat_value: float,
         sat_unit: str
     ) -> Dict[str, Tuple[float, str]]:
         """
         Calculate saturation properties
-        
+
         Args:
             fluid: Fluid name
             sat_type: Saturation type ('T' for temperature or 'P' for pressure)
             sat_value: Saturation value
             sat_unit: Unit of the saturation value
-            
+
         Returns:
             Dictionary of saturation properties
-            
+
         Raises:
             ValueError: If invalid saturation type or unit
         """
@@ -286,7 +289,7 @@ class MixtureCalculator:
                 psat = pres_si
             else:
                 raise ValueError(f"Invalid saturation type: {sat_type}")
-            
+
             # Calculate liquid and vapor properties
             results = {
                 'Saturation Temperature': (temp_sat, 'K'),
@@ -297,27 +300,27 @@ class MixtureCalculator:
                 'Vapor Enthalpy': (PropsSI('H', 'T', temp_sat, 'Q', 1, fluid), 'J/kg'),
                 'Liquid Entropy': (PropsSI('S', 'T', temp_sat, 'Q', 0, fluid), 'J/kg/K'),
                 'Vapor Entropy': (PropsSI('S', 'T', temp_sat, 'Q', 1, fluid), 'J/kg/K'),
-                'Latent Heat': (PropsSI('H', 'T', temp_sat, 'Q', 1, fluid) - 
+                'Latent Heat': (PropsSI('H', 'T', temp_sat, 'Q', 1, fluid) -
                               PropsSI('H', 'T', temp_sat, 'Q', 0, fluid), 'J/kg')
             }
-            
+
             return results
-            
+
         except Exception as e:
             raise ValueError(f"Failed to calculate saturation properties: {str(e)}")
-    
+
     def _convert_to_si(self, value: float, unit: str, prop_type: str) -> float:
         """
         Convert a value to SI units
-        
+
         Args:
             value: Value to convert
             unit: Current unit
             prop_type: Property type ('T' for temperature, 'P' for pressure)
-            
+
         Returns:
             Value in SI units
-            
+
         Raises:
             ValueError: If invalid unit or property type
         """
@@ -353,22 +356,51 @@ class MixtureCalculator:
                 return (value + 14.696) * 6894.76
             else:
                 raise ValueError(f"Invalid pressure unit: {unit}")
+        elif prop_type in ('H', 'U'):
+            if unit == 'J/kg':
+                return value
+            elif unit == 'kJ/kg':
+                return value * 1000
+            elif unit == 'MJ/kg':
+                return value * 1e6
+            elif unit == 'BTU/lb':
+                return value * 2326.0
+            else:
+                raise ValueError(f"Invalid {prop_type} unit: {unit}")
+        elif prop_type == 'D':
+            if unit == 'kg/m³':
+                return value
+            elif unit == 'g/cm³':
+                return value * 1000
+            elif unit == 'lb/ft³':
+                return value * 16.0185
+            elif unit == 'kg/L':
+                return value * 1000
+            else:
+                raise ValueError(f"Invalid density unit: {unit}")
+        elif prop_type == 'S':
+            if unit == 'J/kg/K':
+                return value
+            elif unit == 'kJ/kg/K':
+                return value * 1000
+            else:
+                raise ValueError(f"Invalid entropy unit: {unit}")
         else:
             raise ValueError(f"Invalid property type: {prop_type}")
-    
+
     def calculate_single_point_properties(
-        self, 
-        fluid: str, 
-        prop1: str, 
-        prop1_value: float, 
+        self,
+        fluid: str,
+        prop1: str,
+        prop1_value: float,
         prop1_unit: str,
-        prop2: str, 
-        prop2_value: float, 
+        prop2: str,
+        prop2_value: float,
         prop2_unit: str
     ) -> Dict[str, Tuple[float, str]]:
         """
         Calculate single point properties for a pure fluid
-        
+
         Args:
             fluid: Fluid name
             prop1: First property type ('T', 'P', 'H', 'D', 'S', 'U')
@@ -377,10 +409,10 @@ class MixtureCalculator:
             prop2: Second property type ('T', 'P', 'H', 'D', 'S', 'U')
             prop2_value: Second property value
             prop2_unit: Second property unit
-            
+
         Returns:
             Dictionary of calculated properties
-            
+
         Raises:
             ValueError: If invalid properties or calculation fails
         """
@@ -388,18 +420,18 @@ class MixtureCalculator:
             # Convert inputs to SI units
             prop1_si = self._convert_to_si(prop1_value, prop1_unit, prop1)
             prop2_si = self._convert_to_si(prop2_value, prop2_unit, prop2)
-            
+
             # Map property names to CoolProp format
             prop_map = {
                 'T': 'T', 'P': 'P', 'H': 'H', 'D': 'D', 'S': 'S', 'U': 'U'
             }
-            
+
             prop1_cp = prop_map.get(prop1)
             prop2_cp = prop_map.get(prop2)
-            
+
             if not prop1_cp or not prop2_cp:
                 raise ValueError(f"Invalid property types: {prop1}, {prop2}")
-            
+
             # Helper to safely get properties
             def safe_props_si(prop, unit):
                 try:
@@ -410,7 +442,7 @@ class MixtureCalculator:
 
             # Calculate all properties using CoolProp
             results = {}
-            
+
             # Basic properties
             results['Temperature'] = safe_props_si('T', 'K')
             results['Pressure'] = safe_props_si('P', 'Pa')
@@ -418,34 +450,34 @@ class MixtureCalculator:
             results['Enthalpy'] = safe_props_si('H', 'J/kg')
             results['Entropy'] = safe_props_si('S', 'J/kg/K')
             results['Internal Energy'] = safe_props_si('U', 'J/kg')
-            
+
             # Heat capacities
             results['Isobaric Heat Capacity'] = safe_props_si('Cpmass', 'J/kg/K')
             results['Isochoric Heat Capacity'] = safe_props_si('Cvmass', 'J/kg/K')
-            
+
             # Transport properties
             results['Viscosity'] = safe_props_si('V', 'Pa·s')
             results['Thermal Conductivity'] = safe_props_si('L', 'W/m/K')
-            
+
             # Other properties
             results['Speed of Sound'] = safe_props_si('A', 'm/s')
             results['Surface Tension'] = safe_props_si('I', 'N/m')
             results['Quality'] = safe_props_si('Q', '-')
-            
+
             # Phase information
             try:
                 phase = PhaseSI(prop1_cp, prop1_si, prop2_cp, prop2_si, fluid)
                 results['Phase'] = (phase, '-')
             except:
                 results['Phase'] = ('Unknown', '-')
-            
+
             # Molar properties
             results['Molar Mass'] = safe_props_si('M', 'kg/mol')
             results['Molar Enthalpy'] = safe_props_si('Hmolar', 'J/mol')
             results['Molar Entropy'] = safe_props_si('Smolar', 'J/mol/K')
-            
+
             return results
-            
+
         except Exception as e:
             raise ValueError(f"Failed to calculate properties: {str(e)}")
 

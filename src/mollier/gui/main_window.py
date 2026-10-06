@@ -1,26 +1,27 @@
 """
-Main window implementation for ThermoProp application
+Main window implementation for Mollier application
 """
 
 import json
 
-from PySide6.QtCore import QSettings, QSize, Qt
+from PySide6.QtCore import QSettings
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import (
-    QFileDialog, QMainWindow, QMessageBox, QProgressBar, QStackedWidget,
-    QWidget,
+    QFileDialog, QLabel, QMainWindow, QMessageBox, QProgressBar,
+    QStackedWidget, QWidget,
 )
 
 from ..core.file_io import FileIO
 from ..core.mixture_calculator import MixtureCalculator
 from . import layout as ly
-from .icons import icon
+from .home_page import HomePage
+from .icons import app_icon, glyph_pixmap
 from .mixture_dialog import MixtureDialog
 from .mixture_tab import MixtureTab
 from .plotting_tab import PlottingTab
 from .process_path_tab import ProcessPathTab
 from .saturation_tab import SaturationTab
-from .sidebar import PAGES, Sidebar
+from .sidebar import PAGES, TOOLS, Sidebar, SidebarStrip
 from .single_point_tab import SinglePointTab
 from .theme import Tokens
 from .unit_converter_dialog import UnitConverterDialog
@@ -45,7 +46,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.calc = MixtureCalculator()
-        self.settings = QSettings('ThermoProp', 'Calculator')
+        self.settings = QSettings('Mollier', 'Calculator')
         self.current_mixture = []
         self.pages = {}
         self._sidebar_width = Sidebar.DEFAULT_W
@@ -56,7 +57,8 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         """Initialize the user interface"""
-        self.setWindowTitle('ThermoProp - Thermophysical properties')
+        self.setWindowTitle('Mollier - Thermophysical properties')
+        self.setWindowIcon(app_icon())
         self.setMinimumSize(self.MIN_W, self.MIN_H)
         self.resize(1400, 900)
 
@@ -69,6 +71,16 @@ class MainWindow(QMainWindow):
 
         self.sidebar = Sidebar()
         self.sidebar.selected.connect(self.show_page)
+        self.sidebar.hide_requested.connect(
+            lambda: self.set_sidebar_visible(False))
+
+        # Stands in for the rail while it is hidden, so the way back is
+        # always on screen.
+        self.sidebar_strip = SidebarStrip()
+        self.sidebar_strip.show_requested.connect(
+            lambda: self.set_sidebar_visible(True))
+        self.sidebar_strip.setVisible(False)
+        shell.addWidget(self.sidebar_strip)
 
         self.splitter = ly.splitter(
             self.sidebar, self._build_content(),
@@ -77,6 +89,9 @@ class MainWindow(QMainWindow):
         shell.addWidget(self.splitter)
 
         self.show_page(0)
+        # Start with keyboard focus on the page rather than on the first
+        # nav item, so no focus ring greets the user before they press Tab.
+        self.stack.setFocus()
 
         # Status bar: one message, plus a progress bar that only exists while
         # something is actually running.
@@ -93,24 +108,23 @@ class MainWindow(QMainWindow):
         content, content_layout = ly.panel(margin=Tokens.MARGIN_WINDOW,
                                            spacing=Tokens.SPACING_GROUP)
 
-        header = ly.hbox(spacing=Tokens.SPACING_ROW)
-        self.sidebar_toggle = ly.button(
-            "", variant="quiet", on_click=self.toggle_sidebar,
-            tooltip="Hide the navigation sidebar (Ctrl+B)")
-        self.sidebar_toggle.setIcon(icon("panel-left"))
-        self.sidebar_toggle.setIconSize(QSize(Tokens.ICON_SIZE,
-                                              Tokens.ICON_SIZE))
-        self.sidebar_toggle.setFixedWidth(Tokens.CONTROL_HEIGHT)
-        self.sidebar_toggle.setAccessibleName("Toggle sidebar")
-        header.addWidget(self.sidebar_toggle)
-
+        # The header names the current page with its icon and title. The
+        # home page carries its own welcome title, so the header steps aside
+        # there rather than putting two titles on one screen.
+        self.header = QWidget()
+        header = ly.hbox(self.header, spacing=Tokens.SPACING_ROW + 4)
+        self.page_icon = QLabel()
+        header.addWidget(self.page_icon)
         self.page_title = ly.title("")
         header.addWidget(self.page_title)
         header.addStretch()
-        content_layout.addLayout(header)
+        content_layout.addWidget(self.header)
 
         self.stack = QStackedWidget()
-        for key, _label, _glyph in PAGES:
+        home = HomePage(list(enumerate(TOOLS, start=1)))
+        home.open_page.connect(self.show_page)
+        self.stack.addWidget(home)
+        for key, _label, _glyph, _description in TOOLS:
             page = _PAGE_CLASSES[key](self.calc, self)
             self.pages[key] = page
             self.stack.addWidget(page)
@@ -174,12 +188,13 @@ class MainWindow(QMainWindow):
         """Switch to a page and name it in the header."""
         if not 0 <= index < len(PAGES):
             return
+        _key, label, glyph, _description = PAGES[index]
         self.stack.setCurrentIndex(index)
         self.sidebar.set_current(index)
-        self.page_title.setText(PAGES[index][1])
-
-    def toggle_sidebar(self) -> None:
-        self.set_sidebar_visible(not self.sidebar.isVisible())
+        self.page_title.setText(label)
+        self.page_icon.setPixmap(glyph_pixmap(glyph, Tokens.ICON_TITLE,
+                                              Tokens.INK_SECONDARY))
+        self.header.setVisible(index != 0)
 
     def set_sidebar_visible(self, visible: bool) -> None:
         """Show or hide the navigation rail, restoring its previous width."""
@@ -188,14 +203,12 @@ class MainWindow(QMainWindow):
         if not visible:
             self._sidebar_width = max(self.sidebar.width(), Sidebar.MIN_W)
         self.sidebar.setVisible(visible)
+        self.sidebar_strip.setVisible(not visible)
         if visible:
             self.splitter.setSizes(
                 [self._sidebar_width,
                  max(self.width() - self._sidebar_width, Sidebar.MIN_W)])
         self.sidebar_action.setChecked(visible)
-        self.sidebar_toggle.setToolTip(
-            "Hide the navigation sidebar (Ctrl+B)" if visible
-            else "Show the navigation sidebar (Ctrl+B)")
 
     # -- Shared busy / status feedback -------------------------------------
 
@@ -304,7 +317,8 @@ class MainWindow(QMainWindow):
         self.settings.setValue('windowState', self.saveState())
         self.settings.setValue('sidebarVisible', self.sidebar.isVisible())
         self.settings.setValue('sidebarWidth', self._sidebar_width)
-        self.settings.setValue('page', self.stack.currentIndex())
+        self.settings.setValue('toolsExpanded', self.sidebar.tools_expanded())
+        self.settings.setValue('pageKey', PAGES[self.stack.currentIndex()][0])
 
     def load_settings(self):
         """Load application settings"""
@@ -318,9 +332,12 @@ class MainWindow(QMainWindow):
         width = self.settings.value('sidebarWidth', type=int)
         if width:
             self._sidebar_width = max(width, Sidebar.MIN_W)
-        page = self.settings.value('page', type=int)
-        if page:
-            self.show_page(page)
+        self.sidebar.set_tools_expanded(
+            self.settings.value('toolsExpanded', True, type=bool))
+        keys = [page[0] for page in PAGES]
+        key = self.settings.value('pageKey', 'home', type=str)
+        if key in keys:
+            self.show_page(keys.index(key))
         if self.settings.value('sidebarVisible', True, type=bool) is False:
             self.set_sidebar_visible(False)
 

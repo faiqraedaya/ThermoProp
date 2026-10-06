@@ -1,5 +1,5 @@
 """
-Shared property-sweep routines for ThermoProp.
+Shared property-sweep routines for Mollier.
 
 These keep thermodynamic sweeps out of the plotting/UI layer: the canvas and
 tabs consume the SI arrays returned here and only draw them. Failed points

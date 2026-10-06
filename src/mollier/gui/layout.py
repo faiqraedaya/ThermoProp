@@ -12,7 +12,7 @@ Variants are set through dynamic properties.
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QColor, QFont, QPainter
 from PySide6.QtWidgets import (
     QAbstractItemView, QFormLayout, QGridLayout, QHBoxLayout, QHeaderView,
@@ -221,6 +221,24 @@ def button(text: str, *, variant: str = "", on_click=None,
     if tooltip:
         btn.setToolTip(tooltip)
     btn.setMinimumHeight(T.CONTROL_HEIGHT)
+    return btn
+
+
+def icon_button(qicon, *, tooltip: str, on_click=None) -> QPushButton:
+    """Square quiet button carrying only an icon.
+
+    The tooltip and accessible name stand in for the missing label, so the
+    button still says what it does.
+    """
+    btn = QPushButton()
+    btn.setProperty("variant", "icon")
+    btn.setIcon(qicon)
+    btn.setIconSize(QSize(T.ICON_SIZE, T.ICON_SIZE))
+    btn.setFixedSize(T.CONTROL_HEIGHT, T.CONTROL_HEIGHT)
+    btn.setToolTip(tooltip)
+    btn.setAccessibleName(tooltip)
+    if on_click is not None:
+        btn.clicked.connect(on_click)
     return btn
 
 

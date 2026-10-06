@@ -16,7 +16,7 @@ Usage:
     Tokens.RADIUS                           # border radius in px
 
 Run standalone to print the contrast ladder and verify WCAG ratios:
-    python -m thermoprop.gui.theme
+    python -m mollier.gui.theme
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def _fonts_dir() -> Path:
         return beside_module
     bundle_root = getattr(sys, "_MEIPASS", None)
     if bundle_root:
-        return Path(bundle_root) / "thermoprop" / "gui" / "fonts"
+        return Path(bundle_root) / "mollier" / "gui" / "fonts"
     return beside_module
 
 
@@ -118,6 +118,10 @@ class _Tokens:
     RADIUS: int = 6
     RADIUS_PANEL: int = 8
     ICON_SIZE: int = 16
+    ICON_TITLE: int = 22          # page glyph beside the 22 px page title
+    ICON_CARD: int = 20           # tool glyph on a home-page card
+    ICON_BRAND: int = 24          # app icon beside the name in the sidebar
+    ICON_HERO: int = 96           # app icon on the home page
 
     MIN_WINDOW_W: int = 480
     MIN_WINDOW_H: int = 360
@@ -283,7 +287,7 @@ def _build_qss() -> str:
 }}
 
 /* -- Window ------------------------------------------------ */
-QMainWindow, QDialog, QWidget#centralWidget {{
+QMainWindow, QDialog, QWidget#centralWidget, QWidget#homePage {{
     background: {T.CANVAS};
 }}
 
@@ -305,6 +309,13 @@ QLabel[role="brand"] {{
     font-size: {T.FONT_HEADING}px;
     font-weight: {T.WEIGHT_SEMIBOLD};
     color: {T.ink(T.INK_PRIMARY)};
+}}
+QLabel[role="strong"] {{
+    font-size: {T.FONT_BODY}px;
+    font-weight: {T.WEIGHT_SEMIBOLD};
+}}
+QLabel[role="lead"] {{
+    color: {T.ink(T.INK_SECONDARY)};
 }}
 QLabel[role="caption"] {{
     font-size: {T.FONT_CAPTION}px;
@@ -839,6 +850,71 @@ QPushButton[variant="nav"]:checked {{
 QPushButton[variant="nav"]:focus {{
     border: 2px solid {T.ink(T.INK_GLYPH)};
     padding: 4px 8px;
+}}
+
+/* Collapsible section header in the rail ("Tools"): quieter than the
+   destinations beneath it, with a chevron saying whether it is open. */
+QPushButton[variant="section"] {{
+    background: transparent;
+    border: none;
+    border-radius: {T.RADIUS}px;
+    padding: 6px 10px;
+    min-height: {T.CONTROL_HEIGHT - 12}px;
+    text-align: left;
+    font-size: {T.FONT_CAPTION}px;
+    font-weight: {T.WEIGHT_SEMIBOLD};
+    color: {T.ink(T.INK_TERTIARY)};
+}}
+QPushButton[variant="section"]:hover {{
+    background: {T.ink(T.SURFACE_HOVER)};
+    color: {T.ink(T.INK_PRIMARY)};
+}}
+QPushButton[variant="section"]:pressed {{
+    background: {T.ink(T.SURFACE_PRESSED)};
+}}
+QPushButton[variant="section"]:focus {{
+    border: 2px solid {T.ink(T.INK_GLYPH)};
+    padding: 4px 8px;
+}}
+/* Icon-only quiet button (sidebar hide / show) */
+QPushButton[variant="icon"] {{
+    background: transparent;
+    border: none;
+    padding: 0px;
+}}
+QPushButton[variant="icon"]:hover {{
+    background: {T.ink(T.SURFACE_HOVER)};
+}}
+QPushButton[variant="icon"]:pressed {{
+    background: {T.ink(T.SURFACE_PRESSED)};
+}}
+QPushButton[variant="icon"]:focus {{
+    border: 2px solid {T.ink(T.INK_GLYPH)};
+}}
+/* The strip left behind when the rail is hidden: the way back */
+QWidget#sidebarStrip {{
+    background: {T.ink(T.SURFACE_WASH)};
+    border-right: 1px solid {T.ink(T.SURFACE_BORDER)};
+}}
+
+/* -- Home page tool cards ---------------------------------- */
+QPushButton[variant="card"] {{
+    background: {T.CANVAS};
+    border: 1px solid {T.ink(T.SURFACE_BORDER)};
+    border-radius: {T.RADIUS_PANEL}px;
+    padding: 0px;
+    text-align: left;
+}}
+QPushButton[variant="card"]:hover {{
+    background: {T.ink(T.SURFACE_HOVER)};
+    border-color: {T.ink(T.SURFACE_BORDER_STRONG)};
+}}
+QPushButton[variant="card"]:pressed {{
+    background: {T.ink(T.SURFACE_PRESSED)};
+}}
+QPushButton[variant="card"]:focus {{
+    border: 2px solid {T.ink(T.INK_GLYPH)};
+    padding: 0px;
 }}
 
 /* -- ScrollArea -------------------------------------------- */

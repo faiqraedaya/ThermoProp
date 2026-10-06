@@ -7,8 +7,8 @@ import pytest
 from CoolProp.CoolProp import PropsSI
 from CoolProp.HumidAirProp import HAPropsSI
 
-from thermoprop.core.mixture_calculator import MixtureCalculator
-from thermoprop.core.mixture_component import MixtureComponent
+from mollier.core.mixture_calculator import MixtureCalculator
+from mollier.core.mixture_component import MixtureComponent
 
 
 @pytest.fixture(scope='module')

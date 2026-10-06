@@ -1,7 +1,9 @@
-# ThermoProp
+<img src="src/mollier/gui/assets/mollier.svg" alt="Mollier icon" width="96">
+
+# Mollier
 
 ## Overview
-*ThermoProp is a desktop calculator for the thermophysical properties of pure fluids and mixtures. It brings state-point, saturation, process-path and diagram calculations from CoolProp together in one interface.*
+*Mollier is a desktop calculator for the thermophysical properties of pure fluids and mixtures. It brings state-point, saturation, process-path and diagram calculations from CoolProp together in one interface.*
 
 ## Features
 - Single-point properties of any CoolProp fluid from a pair of T, P, H, D, S or U
@@ -14,16 +16,15 @@
 
 ## Install
 ```bash
-git clone https://github.com/faiqraedaya/ThermoProp
-cd ThermoProp
+git clone https://github.com/faiqraedaya/Mollier
+cd Mollier
 uv sync
 ```
 
 ## Usage
 ```bash
-uv run thermoprop
+uv run mollier
 ```
-On the Single point page, Water at 25 °C and 1.01325 bara is preselected. Click Calculate properties to see the results table, then use Export CSV or Export Excel to save it. `uv run python main.py` starts the same application from a source checkout.
 
 ## Technical details
 Inputs are entered in the GUI: a fluid or mixture, and two state properties in a choice of units. Values are converted to SI before calling CoolProp PropsSI. Supported input pairs are those CoolProp can flash on a mass basis; T-H, T-U, H-U and S-U are rejected. Results include density, enthalpy, entropy, internal energy, heat capacities, speed of sound, viscosity, thermal conductivity, surface tension, compressibility factor, phase and quality.

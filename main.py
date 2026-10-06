@@ -1,13 +1,13 @@
 """
-THERMOPROP
+MOLLIER
 Thermophysical Properties Calculator
 
-Version: 2.6.0
+Version: 2.7.0
 Author: Faiq Raedaya
 
 Launcher for running from a source checkout (``python main.py``).
-The application itself lives in the ``thermoprop`` package under ``src/``;
-see src/thermoprop/app.py.
+The application itself lives in the ``mollier`` package under ``src/``;
+see src/mollier/app.py.
 
 Changelog:
 - 1.0.0 - 2025-05-03
@@ -46,9 +46,16 @@ Changelog:
       hand-authored 16 px Lucide-geometry icon set, replacing the horizontal
       tab bar; each page names itself in a title at the top; Inter now ships
       with the app in gui/fonts instead of being assumed present on the
-      host; modules reorganised into src/thermoprop/core (calculation) and
-      src/thermoprop/gui (interface), and the unused table_utils module was
+      host; modules reorganised into src/mollier/core (calculation) and
+      src/mollier/gui (interface), and the unused table_utils module was
       removed
+- 2.7.0 - 2026-10-06
+    - Renamed from ThermoProp to Mollier, with an app icon (SVG, plus a
+      multi-size ICO for the executable and taskbar)
+    - Home page with the icon, a welcome line and a card for each tool
+    - Tools grouped under a collapsible heading in the sidebar; each page
+      title carries its tool's icon; the sidebar hides from a button at its
+      bottom right and leaves a strip with the button that brings it back
 """
 
 import os
@@ -58,7 +65,7 @@ _SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src')
 if os.path.isdir(_SRC) and _SRC not in sys.path:
     sys.path.insert(0, _SRC)
 
-from thermoprop.app import main
+from mollier.app import main
 
 if __name__ == '__main__':
     main()

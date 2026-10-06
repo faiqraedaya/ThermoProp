@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from CoolProp.CoolProp import PropsSI
 
-from thermoprop.core.sweeps import saturation_sweep, temperature_bounds
+from mollier.core.sweeps import saturation_sweep, temperature_bounds
 
 
 class TestTemperatureBounds:

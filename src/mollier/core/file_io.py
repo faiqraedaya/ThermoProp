@@ -1,5 +1,5 @@
 """
-File I/O utilities for ThermoProp application
+File I/O utilities for Mollier application
 """
 
 import json

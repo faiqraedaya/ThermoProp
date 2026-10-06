@@ -9,8 +9,8 @@ import math
 
 import pytest
 
-from thermoprop.core.mixture_calculator import MixtureCalculator
-from thermoprop.core.mixture_component import MixtureComponent
+from mollier.core.mixture_calculator import MixtureCalculator
+from mollier.core.mixture_component import MixtureComponent
 
 
 @pytest.fixture(scope='module')

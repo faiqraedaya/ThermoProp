@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- A Mollier (h-s) chart: the saturation dome crossed by two isobars -->
+  <rect width="256" height="256" rx="56" fill="#2563EB"/>
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke-width="12" stroke-opacity="0.5">
+      <path d="M52 148 L132 104 C160 88 184 64 204 40"/>
+      <path d="M76 204 L164 152 C190 136 210 112 224 88"/>
+    </g>
+    <path d="M36 200 C44 128 76 84 116 84 C160 84 196 140 220 196" stroke-width="18"/>
+  </g>
+  <circle cx="116" cy="84" r="15" fill="#FFFFFF"/>
+</svg>

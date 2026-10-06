@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from CoolProp.CoolProp import PropsSI
 
-from thermoprop.core.mixture_calculator import MixtureCalculator
+from mollier.core.mixture_calculator import MixtureCalculator
 
 
 @pytest.fixture(scope='module')

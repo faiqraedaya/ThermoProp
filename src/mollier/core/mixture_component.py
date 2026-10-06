@@ -1,5 +1,5 @@
 """
-Mixture component implementation for ThermoProp application
+Mixture component implementation for Mollier application
 """
 
 from CoolProp.CoolProp import PropsSI

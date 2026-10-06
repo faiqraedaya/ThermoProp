@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec for ThermoProp.
+PyInstaller spec for Mollier.
 
 Optimized for minimum on-disk size while still using a directory bundle
 (no --onefile). Trims unused PySide6 modules, alternative matplotlib
@@ -118,7 +118,10 @@ a = Analysis(
     ['main.py'],
     pathex=['src'],
     binaries=[],
-    datas=[('src/thermoprop/gui/fonts', 'thermoprop/gui/fonts')],
+    datas=[
+        ('src/mollier/gui/fonts', 'mollier/gui/fonts'),
+        ('src/mollier/gui/assets', 'mollier/gui/assets'),
+    ],
     hiddenimports=HIDDEN,
     hookspath=[],
     hooksconfig={},
@@ -138,7 +141,8 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='ThermoProp',
+    name='Mollier',
+    icon='src/mollier/gui/assets/mollier.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=True,
@@ -169,5 +173,5 @@ coll = COLLECT(
         'Qt6Pdf.dll',
         'qwindows.dll',
     ],
-    name='ThermoProp',
+    name='Mollier',
 )

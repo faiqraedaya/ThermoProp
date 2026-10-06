@@ -13,11 +13,29 @@ beside its own text label.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 from PySide6.QtCore import QByteArray, QRectF, Qt
 from PySide6.QtGui import QIcon, QPainter, QPixmap
 from PySide6.QtSvg import QSvgRenderer
 
 from .theme import Tokens
+
+
+# The application icon is the one coloured asset in the app. It ships beside
+# this module; a PyInstaller bundle unpacks it under the frozen root instead.
+def _assets_dir() -> Path:
+    beside_module = Path(__file__).parent / "assets"
+    if beside_module.is_dir():
+        return beside_module
+    bundle_root = getattr(sys, "_MEIPASS", None)
+    if bundle_root:
+        return Path(bundle_root) / "mollier" / "gui" / "assets"
+    return beside_module
+
+
+APP_ICON_SVG = _assets_dir() / "mollier.svg"
 
 # Lucide paths on a 24x24 grid. Keep new entries in the same idiom: round
 # caps and joins, geometric construction, no fills.
@@ -50,10 +68,23 @@ _GLYPHS = {
         '<path d="M3 3v16a2 2 0 0 0 2 2h16"/>'
         '<path d="m19 9-5 5-4-4-3 3"/>'
     ),
-    # The sidebar toggle: a panel with its rail marked
-    "panel-left": (
-        '<rect width="18" height="18" x="3" y="3" rx="2"/>'
-        '<path d="M9 3v18"/>'
+    # The welcome page
+    "house": (
+        '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>'
+        '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0'
+        'l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
+    ),
+    # A section that is expanded / collapsed
+    "chevron-down": '<path d="m6 9 6 6 6-6"/>',
+    "chevron-right": '<path d="m9 18 6-6-6-6"/>',
+    # Hide / show the sidebar
+    "chevrons-left": (
+        '<path d="m11 17-5-5 5-5"/>'
+        '<path d="m18 17-5-5 5-5"/>'
+    ),
+    "chevrons-right": (
+        '<path d="m6 17 5-5-5-5"/>'
+        '<path d="m13 17 5-5-5-5"/>'
     ),
 }
 
@@ -84,6 +115,43 @@ def _pixmap(name: str, colour: str, size: int, ratio: float) -> QPixmap:
     return pixmap
 
 
+def _check(name: str) -> None:
+    if name not in _GLYPHS:
+        raise KeyError(
+            f"No '{name}' in the icon set. Add it to _GLYPHS in Lucide's "
+            f"idiom, or use a text label - never reach for a second family."
+        )
+
+
+def glyph_pixmap(name: str, size: int, alpha: float,
+                 ratio: float = 2.0) -> QPixmap:
+    """One glyph as a static pixmap at a given ink rung, for a label."""
+    _check(name)
+    return _pixmap(name, Tokens.ink_hex(alpha), size, ratio)
+
+
+def app_pixmap(size: int, ratio: float = 2.0) -> QPixmap:
+    """The application icon, as shipped, rendered from its SVG."""
+    renderer = QSvgRenderer(str(APP_ICON_SVG))
+    pixmap = QPixmap(int(size * ratio), int(size * ratio))
+    pixmap.setDevicePixelRatio(ratio)
+    pixmap.fill(Qt.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.Antialiasing)
+    renderer.setAspectRatioMode(Qt.KeepAspectRatio)
+    renderer.render(painter, QRectF(0, 0, size, size))
+    painter.end()
+    return pixmap
+
+
+def app_icon() -> QIcon:
+    """The window and taskbar icon, rendered from the vector at each size."""
+    result = QIcon()
+    for size in (16, 20, 24, 32, 40, 48, 64, 128, 256):
+        result.addPixmap(app_pixmap(size, ratio=1.0))
+    return result
+
+
 def icon(name: str, *, size: int = 0, ratio: float = 2.0) -> QIcon:
     """An icon that sits at glyph alpha and promotes when active.
 
@@ -91,11 +159,7 @@ def icon(name: str, *, size: int = 0, ratio: float = 2.0) -> QIcon:
     under the mouse, so a nav item's icon brightens with its label instead
     of staying flat while the text around it changes.
     """
-    if name not in _GLYPHS:
-        raise KeyError(
-            f"No '{name}' in the icon set. Add it to _GLYPHS in Lucide's "
-            f"idiom, or use a text label - never reach for a second family."
-        )
+    _check(name)
     size = size or Tokens.ICON_SIZE
     rest = Tokens.ink_hex(Tokens.INK_GLYPH)
     active = Tokens.ink_hex(Tokens.INK_SECONDARY)

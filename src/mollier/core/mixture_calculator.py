@@ -1,5 +1,5 @@
 """
-Mixture calculator implementation for ThermoProp application
+Mixture calculator implementation for Mollier application
 
 All inputs and outputs of the calculation methods are SI (K, Pa, J/kg, kg/m³)
 unless a unit is stated in the returned (value, unit) tuple.

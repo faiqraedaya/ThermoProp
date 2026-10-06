@@ -2,10 +2,10 @@
 setlocal
 
 rem ---------------------------------------------------------------------------
-rem ThermoProp build script
+rem Mollier build script
 rem
 rem Uses uv to sync the dev group (which provides PyInstaller) and then runs
-rem PyInstaller against build.spec. Produces dist\ThermoProp\ThermoProp.exe
+rem PyInstaller against build.spec. Produces dist\Mollier\Mollier.exe
 rem (directory bundle, not onefile).
 rem ---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ echo [build] Running PyInstaller...
 uv run --group dev pyinstaller --noconfirm --clean build.spec || goto :error
 
 echo.
-echo [build] Done. Output: dist\ThermoProp\ThermoProp.exe
+echo [build] Done. Output: dist\Mollier\Mollier.exe
 popd
 endlocal
 exit /b 0
